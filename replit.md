@@ -43,6 +43,15 @@ File operations are handled through Python's standard library (`pathlib`, `os`, 
 ### Error Handling
 The application implements error handling for common file system operations, including permission errors and invalid operations, ensuring graceful degradation when operations fail.
 
+### Security Features
+- **Secure File Opening**: The `open_file` method includes validation to prevent command injection vulnerabilities when opening files with system applications
+- **Path Validation**: File paths are resolved and validated before being passed to subprocess calls
+- **Command Safety**: Subprocess calls use array syntax to prevent shell injection attacks
+
+## Recent Changes
+
+**September 01, 2025**: Applied security patch to fix command injection vulnerability in file opening functionality. Added path validation and safer subprocess handling.
+
 ## External Dependencies
 
 - **tkinter**: Primary GUI framework (included with Python) for creating the desktop interface

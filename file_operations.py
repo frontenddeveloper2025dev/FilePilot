@@ -254,14 +254,18 @@ class FileOperations:
     def open_file(self, file_path):
         """Open a file with the default system application"""
         try:
-            file_path = Path(file_path)
+            file_path = Path(file_path).resolve()
+            
+            # Validate that the file exists and is a regular file or directory
+            if not file_path.exists():
+                raise Exception("File does not exist")
             
             if self.system == "Windows":
                 os.startfile(str(file_path))
             elif self.system == "Darwin":  # macOS
-                subprocess.run(["open", str(file_path)])
+                subprocess.run(["open", str(file_path)], check=True)
             else:  # Linux and other Unix-like systems
-                subprocess.run(["xdg-open", str(file_path)])
+                subprocess.run(["xdg-open", str(file_path)], check=True)
                 
         except Exception as e:
             raise Exception(f"Cannot open file: {e}")
