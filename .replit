@@ -21,12 +21,13 @@ args = "File Manager"
 name = "File Manager"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python main.py"
-
-[workflows.workflow.metadata]
-outputType = "vnc"
+waitForPort = 5000
 
 [deployment]
 deploymentTarget = "cloudrun"

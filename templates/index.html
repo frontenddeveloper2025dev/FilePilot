@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="toolbar">
+    <form method="POST" action="/navigate" style="display: flex; gap: 10px; flex: 1; align-items: center;">
+        <input type="text" name="path" value="{{ current_path }}" class="path-bar">
+        <button type="submit" class="btn">Go</button>
+    </form>
+    
+    {% if parent_path %}
+    <form method="POST" action="/navigate" style="margin: 0;">
+        <input type="hidden" name="path" value="{{ parent_path }}">
+        <button type="submit" class="btn btn-secondary">↑ Up</button>
+    </form>
+    {% endif %}
+    
+    <button onclick="showModal('uploadModal')" class="btn">Upload File</button>
+    <button onclick="showModal('newFolderModal')" class="btn">New Folder</button>
+    
+    <form method="GET" action="/search" style="margin: 0;">
+        <input type="text" name="q" placeholder="Search files..." class="search-box">
+    </form>
+</div>
+
+<div class="content">
+    {% if files %}
+    <table class="file-list">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Modified</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in files %}
+            <tr>
+                <td>
+                    <div class="file-name">
+                        {% if file.is_dir %}
+                            <span class="folder">📁</span>
+                            <form method="POST" action="/navigate" style="margin: 0; display: inline;">
+                                <input type="hidden" name="path" value="{{ file.path }}">
+                                <button type="submit" style="background: none; border: none; color: #059669; font-weight: 500; cursor: pointer; padding: 0;">
+                                    {{ file.name }}
+                                </button>
+                            </form>
+                        {% else %}
+                            <span>📄</span>
+                            <a href="/download/{{ file.name }}">{{ file.name }}</a>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>{{ file.size }}</td>
+                <td>{{ file.modified }}</td>
+                <td>
+                    <button onclick="renameItem('{{ file.path }}', '{{ file.name }}')" class="btn btn-secondary" style="font-size: 12px; padding: 4px 8px;">Rename</button>
+                    <button onclick="confirmDelete('{{ file.path }}', '{{ file.name }}')" class="btn btn-danger" style="font-size: 12px; padding: 4px 8px;">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>This folder is empty.</p>
+    {% endif %}
+</div>
+
+<!-- Upload Modal -->
+<div id="uploadModal" class="modal">
+    <div class="modal-content">
+        <h3>Upload File</h3>
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Select File:</label>
+                <input type="file" name="file" required>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" onclick="hideModal('uploadModal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn">Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- New Folder Modal -->
+<div id="newFolderModal" class="modal">
+    <div class="modal-content">
+        <h3>Create New Folder</h3>
+        <form id="newFolderForm" action="/create_folder" method="POST">
+            <div class="form-group">
+                <label>Folder Name:</label>
+                <input type="text" name="name" required>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" onclick="hideModal('newFolderModal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function renameItem(path, currentName) {
+    const newName = prompt('Enter new name:', currentName);
+    if (newName && newName !== currentName) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/rename';
+        
+        const oldPathInput = document.createElement('input');
+        oldPathInput.type = 'hidden';
+        oldPathInput.name = 'old_path';
+        oldPathInput.value = path;
+        
+        const newNameInput = document.createElement('input');
+        newNameInput.type = 'hidden';
+        newNameInput.name = 'new_name';
+        newNameInput.value = newName;
+        
+        form.appendChild(oldPathInput);
+        form.appendChild(newNameInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Handle upload form
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            hideModal('uploadModal');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+});
+
+// Handle new folder form
+document.getElementById('newFolderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('/create_folder', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            hideModal('newFolderModal');
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+});
+</script>
+{% endblock %}

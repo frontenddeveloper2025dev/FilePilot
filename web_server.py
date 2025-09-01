@@ -6,6 +6,7 @@ Provides HTTP endpoints for file management operations compatible with Autoscale
 import os
 import json
 from pathlib import Path
+from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file
 from file_operations import FileOperations
 from utils import Utils
@@ -22,24 +23,23 @@ def index():
     """Main file manager interface"""
     global current_directory
     try:
-        files = file_ops.list_directory(current_directory)
+        directory_contents = file_ops.get_directory_contents(current_directory)
         current_path = str(current_directory)
         parent_path = str(current_directory.parent) if current_directory.parent != current_directory else None
         
         # Process files for web display
         file_list = []
-        for file_path in files:
+        for item in directory_contents:
+            if item['name'] == '..':  # Skip parent directory entry
+                continue
             file_info = {
-                'name': file_path.name,
-                'path': str(file_path),
-                'is_dir': file_path.is_dir(),
-                'size': utils.format_size(file_ops.get_file_size(file_path)) if not file_path.is_dir() else '',
-                'modified': utils.format_datetime(file_ops.get_file_modified_time(file_path))
+                'name': item['name'],
+                'path': str(item['path']),
+                'is_dir': item['type'] == 'Folder',
+                'size': file_ops.format_size(item['size']) if item['size'] is not None else '',
+                'modified': utils.format_datetime(item['modified'])
             }
             file_list.append(file_info)
-        
-        # Sort files by name, directories first
-        file_list.sort(key=lambda x: (not x['is_dir'], x['name'].lower()))
         
         return render_template('index.html', 
                              files=file_list, 
@@ -70,7 +70,7 @@ def upload_file():
         return jsonify({'error': 'No file selected'}), 400
     
     file = request.files['file']
-    if file.filename == '':
+    if file.filename == '' or file.filename is None:
         return jsonify({'error': 'No file selected'}), 400
     
     try:
@@ -90,7 +90,7 @@ def create_folder():
     
     try:
         new_folder = current_directory / folder_name
-        file_ops.create_directory(new_folder)
+        file_ops.create_folder(new_folder)
         return jsonify({'success': 'Folder created successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -104,10 +104,7 @@ def delete_item():
     
     try:
         path = Path(item_path)
-        if path.is_file():
-            file_ops.delete_file(path)
-        elif path.is_dir():
-            file_ops.delete_directory(path)
+        file_ops.delete_item(path)
         return jsonify({'success': 'Item deleted successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -124,7 +121,7 @@ def rename_item():
     try:
         old = Path(old_path)
         new = old.parent / new_name
-        file_ops.move_file(old, new)
+        file_ops.rename_item(old, new)
         return jsonify({'success': 'Item renamed successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -151,22 +148,32 @@ def search():
     
     try:
         global current_directory
-        results = file_ops.search_files(current_directory, query)
+        # Implement search functionality
+        results = []
+        query_lower = query.lower()
         
-        # Process results for web display
-        file_list = []
-        for file_path in results:
-            file_info = {
-                'name': file_path.name,
-                'path': str(file_path),
-                'is_dir': file_path.is_dir(),
-                'size': utils.format_size(file_ops.get_file_size(file_path)) if not file_path.is_dir() else '',
-                'modified': utils.format_datetime(file_ops.get_file_modified_time(file_path))
-            }
-            file_list.append(file_info)
+        # Search in current directory and subdirectories
+        for item in current_directory.rglob('*'):
+            try:
+                if query_lower in item.name.lower():
+                    stat_info = item.stat()
+                    file_info = {
+                        'name': item.name,
+                        'path': str(item),
+                        'is_dir': item.is_dir(),
+                        'size': file_ops.format_size(stat_info.st_size) if not item.is_dir() else '',
+                        'modified': utils.format_datetime(datetime.fromtimestamp(stat_info.st_mtime))
+                    }
+                    results.append(file_info)
+            except (OSError, PermissionError):
+                # Skip files/directories we can't access
+                continue
+        
+        # Sort results by name, directories first
+        results.sort(key=lambda x: (not x['is_dir'], x['name'].lower()))
         
         return render_template('search_results.html', 
-                             files=file_list, 
+                             files=results, 
                              query=query,
                              current_path=str(current_directory))
     except Exception as e:

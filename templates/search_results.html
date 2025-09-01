@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - File Manager{% endblock %}
+
+{% block header %}Search Results for "{{ query }}"{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <a href="/" class="btn btn-secondary">← Back to Files</a>
+    <form method="GET" action="/search" style="margin: 0; flex: 1; display: flex; gap: 10px;">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search files..." class="search-box" style="flex: 1;">
+        <button type="submit" class="btn">Search</button>
+    </form>
+</div>
+
+<div class="content">
+    <p><strong>Current Directory:</strong> {{ current_path }}</p>
+    
+    {% if files %}
+    <p>Found {{ files|length }} result(s):</p>
+    <table class="file-list">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Path</th>
+                <th>Size</th>
+                <th>Modified</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in files %}
+            <tr>
+                <td>
+                    <div class="file-name">
+                        {% if file.is_dir %}
+                            <span class="folder">📁 {{ file.name }}</span>
+                        {% else %}
+                            <span>📄</span>
+                            <a href="/download/{{ file.name }}">{{ file.name }}</a>
+                        {% endif %}
+                    </div>
+                </td>
+                <td style="font-family: monospace; font-size: 12px;">{{ file.path }}</td>
+                <td>{{ file.size }}</td>
+                <td>{{ file.modified }}</td>
+                <td>
+                    {% if file.is_dir %}
+                        <form method="POST" action="/navigate" style="margin: 0; display: inline;">
+                            <input type="hidden" name="path" value="{{ file.path }}">
+                            <button type="submit" class="btn" style="font-size: 12px; padding: 4px 8px;">Open</button>
+                        </form>
+                    {% endif %}
+                    <button onclick="confirmDelete('{{ file.path }}', '{{ file.name }}')" class="btn btn-danger" style="font-size: 12px; padding: 4px 8px;">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No files found matching "{{ query }}".</p>
+    {% endif %}
+</div>
+{% endblock %}
