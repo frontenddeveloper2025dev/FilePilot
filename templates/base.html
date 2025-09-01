@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}File Manager{% endblock %}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .toolbar {
+            background: #f8fafc;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #1d4ed8;
+        }
+        .btn-secondary {
+            background: #64748b;
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        .btn-danger {
+            background: #dc2626;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+        .path-bar {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-family: monospace;
+            background: white;
+        }
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .file-list {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .file-list th,
+        .file-list td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .file-list th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        .file-list tr:hover {
+            background: #f8fafc;
+        }
+        .file-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+        }
+        .file-name {
+            display: flex;
+            align-items: center;
+        }
+        .file-name a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .file-name a:hover {
+            text-decoration: underline;
+        }
+        .folder {
+            color: #059669;
+            font-weight: 500;
+        }
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #fecaca;
+        }
+        .success {
+            background: #f0fdf4;
+            color: #059669;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #bbf7d0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 400px;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{% block header %}File Manager{% endblock %}</h1>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script>
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function confirmDelete(path, name) {
+            if (confirm('Are you sure you want to delete "' + name + '"?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/delete';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'path';
+                input.value = path;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Handle form submissions with feedback
+        function handleFormSubmit(form, successMsg) {
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(successMsg);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            });
+        }
+    </script>
+</body>
+</html>
