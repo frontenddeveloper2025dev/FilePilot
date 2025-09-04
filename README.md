@@ -112,9 +112,8 @@ Plataforma de Despliegue
 Vercel: Plataforma serverless con escalado automático y CDN global.
 Python 3.11.9: Entorno de ejecución especificado en runtime.txt.
 Operaciones del Sistema de Archivos
-Construido completamente con módulos de la biblioteca estándar de Python para máxima compatibilidad y mínimas dependencias externas:
+La aplicación está construida completamente con módulos de la biblioteca estándar de Python para máxima compatibilidad y mínimas dependencias externas:
 
 pathlib para manejo moderno de rutas.
 os y shutil para operaciones del sistema de archivos.
 platform para detección de compatibilidad multiplataforma.
-
