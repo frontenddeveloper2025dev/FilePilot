@@ -261,7 +261,8 @@ class FileOperations:
                 raise Exception("File does not exist")
             
             if self.system == "Windows":
-                os.startfile(str(file_path))
+                # Use subprocess for better cross-platform compatibility
+                subprocess.run(["cmd", "/c", "start", "", str(file_path)], shell=True, check=True)
             elif self.system == "Darwin":  # macOS
                 subprocess.run(["open", str(file_path)], check=True)
             else:  # Linux and other Unix-like systems
