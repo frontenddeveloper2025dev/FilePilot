@@ -31,3 +31,7 @@ waitForPort = 5000
 
 [deployment]
 deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
