@@ -15,6 +15,15 @@ app = Flask(__name__)
 file_ops = FileOperations()
 utils = Utils()
 
+# Add cache control headers to prevent caching issues
+@app.after_request
+def add_cache_control_headers(response):
+    """Add cache control headers to prevent browser caching"""
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 # Global state to track current directory
 current_directory = Path.home()
 
@@ -36,7 +45,7 @@ def index():
                 'name': item['name'],
                 'path': str(item['path']),
                 'is_dir': item['type'] == 'Folder',
-                'size': file_ops.format_size(item['size']) if item['size'] is not None else '',
+                'size': utils.format_size(item['size']) if item['size'] is not None else '',
                 'modified': utils.format_datetime(item['modified'])
             }
             file_list.append(file_info)
@@ -161,7 +170,7 @@ def search():
                         'name': item.name,
                         'path': str(item),
                         'is_dir': item.is_dir(),
-                        'size': file_ops.format_size(stat_info.st_size) if not item.is_dir() else '',
+                        'size': utils.format_size(stat_info.st_size) if not item.is_dir() else '',
                         'modified': utils.format_datetime(datetime.fromtimestamp(stat_info.st_mtime))
                     }
                     results.append(file_info)

@@ -10,11 +10,13 @@ from pathlib import Path
 from datetime import datetime
 import subprocess
 import platform
+from utils import Utils
 
 class FileOperations:
     def __init__(self):
         """Initialize file operations handler"""
         self.system = platform.system()
+        self.utils = Utils()
     
     def get_directory_contents(self, path):
         """Get contents of a directory with file information"""
@@ -202,9 +204,9 @@ class FileOperations:
             # Calculate size for directories
             if item_path.is_dir():
                 size = self.get_directory_size(item_path)
-                size_str = self.format_size(size)
+                size_str = self.utils.format_size(size)
             else:
-                size_str = self.format_size(stat.st_size)
+                size_str = self.utils.format_size(stat.st_size)
             
             properties = {
                 'name': item_path.name,
@@ -236,20 +238,6 @@ class FileOperations:
         
         return total_size
     
-    def format_size(self, size_bytes):
-        """Format file size in human-readable format"""
-        if size_bytes == 0:
-            return "0 B"
-        
-        size_names = ["B", "KB", "MB", "GB", "TB"]
-        i = 0
-        size = float(size_bytes)
-        
-        while size >= 1024.0 and i < len(size_names) - 1:
-            size /= 1024.0
-            i += 1
-        
-        return f"{size:.1f} {size_names[i]}"
     
     def open_file(self, file_path):
         """Open a file with the default system application"""
