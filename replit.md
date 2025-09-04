@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a Python desktop file manager application built with tkinter that provides a graphical interface for common file system operations. The application allows users to navigate directories, manage files and folders, and perform operations like copy, cut, paste, and delete through an intuitive GUI interface. It includes advanced features like search functionality and sorting capabilities.
+This is a Python-based file manager application that has evolved from a desktop tkinter application to a web-based file management system. The application provides a browser-based interface for common file system operations including navigation, file uploads, downloads, directory creation, and search functionality. It's designed for deployment on serverless platforms like Vercel and includes both local development capabilities and cloud deployment configurations.
 
 ## User Preferences
 
@@ -10,52 +10,75 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Application Structure
-The application follows a modular design with clear separation of concerns:
+### Web Framework Architecture
+The application uses Flask as the primary web framework, providing a lightweight and flexible foundation for the file management interface. The web server (`web_server.py`) handles all HTTP routing and serves HTML templates through Jinja2 templating engine.
 
-- **Main Application (`file_manager.py`)**: Contains the `FileManagerApp` class that handles the tkinter interface, user interactions, and overall application state management
-- **File Operations (`file_operations.py`)**: Encapsulates all file system operations in the `FileOperations` class, providing methods for directory traversal, file manipulation, and system-specific operations
-- **Utilities (`utils.py`)**: Provides helper functions through the `Utils` class for formatting, validation, and common operations like file size formatting and datetime handling
-- **Entry Point (`main.py`)**: Simple application launcher that instantiates and runs the main application
+### Modular Design Pattern
+The codebase follows a clear separation of concerns with three main modules:
+- **FileOperations Module**: Encapsulates all file system operations including directory traversal, file type detection, and metadata extraction
+- **Utils Module**: Provides utility functions for formatting file sizes, datetime handling, and filename validation
+- **Web Server Module**: Manages HTTP requests, template rendering, and API endpoints
 
-### GUI Framework
-The application uses tkinter as the primary GUI framework, which comes built-in with Python and provides excellent cross-platform compatibility. The interface includes:
-- Menu system with File, Edit, View, and Help menus
-- Toolbar with common navigation and operation buttons
-- Search bar for finding files and directories
-- Sortable column headers for organizing files by name, size, type, or date
-- Context menus for right-click operations
+### Template-Based UI Architecture
+The user interface is built using server-side rendering with Jinja2 templates:
+- **Base Template**: Provides consistent layout, styling, and navigation structure
+- **Index Template**: Main file browser interface with upload and folder creation capabilities
+- **Search Template**: Dedicated search results page with filtering capabilities
+- **Error Template**: Standardized error handling and user feedback
 
 ### File System Integration
-File operations are handled through Python's standard library (`pathlib`, `os`, `shutil`) with cross-platform compatibility considerations using the `platform` module. The application maintains state for:
-- Current directory path
-- Selected items
-- Clipboard operations (copy/cut/paste)
-- Search terms and filters
-- Sorting preferences (column and order)
-
-### Advanced Features
-- **Search Functionality**: Real-time search that filters files and directories as you type
-- **Sorting Capabilities**: Click any column header to sort by name, size, type, or modification date
-- **Keyboard Shortcuts**: Full support for common operations (Ctrl+C, Ctrl+V, Ctrl+X, Delete, F5, Ctrl+F)
-- **Context Menus**: Right-click support for quick access to file operations
-
-### Error Handling
-The application implements error handling for common file system operations, including permission errors and invalid operations, ensuring graceful degradation when operations fail.
+File operations leverage Python's standard library (`pathlib`, `os`, `shutil`) for cross-platform compatibility. The application maintains session state through global variables tracking the current directory and implements secure file handling with path validation.
 
 ### Security Features
-- **Secure File Opening**: The `open_file` method includes validation to prevent command injection vulnerabilities when opening files with system applications
-- **Path Validation**: File paths are resolved and validated before being passed to subprocess calls
-- **Command Safety**: Subprocess calls use array syntax to prevent shell injection attacks
+The application includes several security measures:
+- Path validation to prevent directory traversal attacks
+- Secure file handling with proper input sanitization
+- Cache control headers to prevent browser caching of sensitive data
+- Command injection prevention in file operations
 
-## Recent Changes
+### Deployment Architecture
+The application supports multiple deployment scenarios:
+- **Local Development**: Direct Flask development server execution
+- **Vercel Serverless**: Configured with `vercel.json` for serverless deployment
+- **Gunicorn Production**: WSGI server support for traditional hosting environments
 
-**September 01, 2025**: Applied security patch to fix command injection vulnerability in file opening functionality. Added path validation and safer subprocess handling.
+### State Management
+The application uses server-side state management with global variables to track:
+- Current working directory
+- User navigation history
+- File operation context
+
+### API Structure
+RESTful endpoints handle file operations:
+- GET `/` - Main file browser interface
+- POST `/navigate` - Directory navigation
+- GET `/search` - File search functionality
+- POST `/upload` - File upload handling
+- POST `/create_folder` - Directory creation
+- GET `/download/<filename>` - File download
 
 ## External Dependencies
 
-- **tkinter**: Primary GUI framework (included with Python) for creating the desktop interface
-- **Python Standard Library**: Core dependencies including `pathlib`, `os`, `shutil`, `platform`, `datetime`, `threading`, and `glob`
-- **Operating System**: Cross-platform compatibility with Windows, macOS, and Linux through platform-specific adaptations
+### Python Web Framework
+- **Flask 3.1.2**: Core web framework providing routing, templating, and request handling
+- **Jinja2 3.1.6**: Template engine for server-side HTML rendering
+- **Werkzeug 3.1.3**: WSGI utility library underlying Flask
 
-The application is designed to be lightweight with zero external dependencies, relying entirely on Python's built-in modules for both file system operations and the graphical user interface.
+### Production Server
+- **Gunicorn 23.0.0**: Python WSGI HTTP Server for production deployments
+
+### Security and Utilities
+- **MarkupSafe 3.0.2**: String handling and XSS prevention
+- **Click 8.2.1**: Command-line interface utilities
+- **ItsDangerous 2.2.0**: Cryptographic signing for secure data handling
+- **Blinker 1.9.0**: Signal/event handling system
+
+### Deployment Platform
+- **Vercel**: Serverless deployment platform with automatic scaling and global CDN
+- **Python 3.11.9**: Runtime environment specified in `runtime.txt`
+
+### File System Operations
+Built entirely on Python standard library modules for maximum compatibility and minimal external dependencies:
+- `pathlib` for modern path handling
+- `os` and `shutil` for file system operations
+- `platform` for cross-platform compatibility detection
