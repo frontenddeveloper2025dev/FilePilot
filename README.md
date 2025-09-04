@@ -54,7 +54,6 @@ La aplicación utiliza gestión de estado del lado servidor con variables global
 ## Estructura de la API
 Los endpoints RESTful manejan las operaciones de archivos:
 
-
 Método
 
 Ruta
@@ -118,5 +117,4 @@ Construido completamente con módulos de la biblioteca estándar de Python para 
 pathlib para manejo moderno de rutas.
 os y shutil para operaciones del sistema de archivos.
 platform para detección de compatibilidad multiplataforma.
-
 
