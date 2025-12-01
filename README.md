@@ -75,3 +75,35 @@
 
 ```bash
 python web_server.py
+
+
+2. ☁️ Despliegue Serverless (Vercel)
+
+Incluye archivo vercel.json para compatibilidad:
+
+{
+  "builds": [{ "src": "web_server.py", "use": "@vercel/python" }],
+  "routes": [{ "src": "/(.*)", "dest": "web_server.py" }]
+}
+
+3. 🖥️ Producción tradicional con Gunicorn
+gunicorn web_server:app
+
+📁 Estructura del Proyecto
+FilePilot/
+├── templates/
+│   ├── base.html
+│   ├── index.html
+│   ├── search.html
+│   └── error.html
+├── static/
+│   └── styles.css
+├── utils.py
+├── file_operations.py
+├── web_server.py
+├── vercel.json
+└── README.md
+
+👩‍💻 Autora
+
+Desarrollado por frontenddeveloper2025dev, como proyecto evolutivo que transforma una app de escritorio en una solución web ligera, segura y preparada para la nube.
